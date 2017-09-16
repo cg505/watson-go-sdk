@@ -31,7 +31,7 @@ func (w *Watson) GetModels() (*Models, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	
+
 	uri := path.Join(watsonUrl, "speech-to-text", "api", sttVer, "models")
 
 	req, err := http.NewRequest("GET", httpsScheme + uri, nil)
@@ -60,7 +60,7 @@ func (w *Watson) GetModels() (*Models, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return m, nil
 }
 
@@ -81,7 +81,7 @@ func (w *Watson) createSession(model string) (*Session, error) {
 
 	data := url.Values{}
 	data.Set("model", model)
-	
+
 	uri := path.Join(watsonUrl, "speech-to-text", "api", sttVer, "sessions")
 
 	buf := bytes.NewBufferString(data.Encode())
@@ -113,7 +113,7 @@ func (w *Watson) createSession(model string) (*Session, error) {
 		return nil, err
 	}
 
-	ss.Cookies = readSetCookies(res.Header) 	
+	ss.Cookies = readSetCookies(res.Header)
 	return ss, nil
 }
 
@@ -184,6 +184,8 @@ func (w *Watson) Recognize(is io.Reader, model, afmt string) (*Text, error) {
 		tp = "audio/wav"
 	case "flac":
 		tp = "audio/flac"
+	case "mp3":
+		tp = "audio/mpeg"
 	default:
 		return nil, errors.New("Invalid file format")
 	}
@@ -198,10 +200,10 @@ func (w *Watson) Recognize(is io.Reader, model, afmt string) (*Text, error) {
 		client = &http.Client{}
 	}
 
-	// TODO: parameters 
-	req, err := http.NewRequest("POST", 
+	// TODO: parameters
+	req, err := http.NewRequest("POST",
 		uri +
-		"?continuous=true" + 
+		"?continuous=true" +
 		"&max_alternatives=1" +
 		"&timestamps=true" +
 		"&word_confidence=true" +
@@ -231,7 +233,7 @@ func (w *Watson) Recognize(is io.Reader, model, afmt string) (*Text, error) {
 	if res.StatusCode != 200 {
 		return nil, watsonError(res)
 	}
-	
+
 	return ParseResponse(res.Body)
 }
 
@@ -251,7 +253,7 @@ func ParseResponse(rd io.Reader) (*Text, error) {
 		a := r.Alternatives[0]
 		for i, t := range a.Timestamps {
 			w := a.Words[i]
-			
+
 			n := t[0]
 			b := t[1]
 			e := t[2]
